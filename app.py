@@ -51,6 +51,10 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 # --- ROTAS (Exemplos) ---
+@app.route('/health')
+def index():
+    return "Kanban está rodando corretamente 🚀"
+
 @app.route('/')
 @login_required
 def index():
