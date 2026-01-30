@@ -11,6 +11,19 @@ app.config['SECRET_KEY'] = 'sua_chave_secreta_aqui'
 # Configuração para o Postgres no Docker
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://user:pass@db:5432/kanban_db')
 
+with app.app_context():
+    retries = 5
+    while retries > 0:
+        try:
+            db.create_all()
+            print("Banco inicializado com sucesso!")
+            break
+        except OperationalError:
+            retries -= 1
+            print(f"Banco não pronto, retry em 5s ({retries})")
+            time.sleep(5)
+
+
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -53,17 +66,3 @@ def add_column():
     db.session.add(new_col)
     db.session.commit()
     return redirect(url_for('index'))
-
-if __name__ == '__main__':
-    with app.app_context():
-        retries = 5
-        while retries > 0:
-            try:
-                db.create_all()
-                print("Conectado ao banco de dados com sucesso!")
-                break
-            except OperationalError:
-                retries -= 1
-                print(f"Banco ainda não pronto... tentando novamente em 5s ({retries} tentativas restantes)")
-                time.sleep(5)
-    app.run(host='0.0.0.0', port=5000)
